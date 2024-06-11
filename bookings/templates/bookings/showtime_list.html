@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Showtimes for {{ movie.title }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .head {
+            color: #fff;
+            margin-top: 50px;
+        }
+
+        body {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-family: Arial, sans-serif;
+            color: #fff; /* Make text color white to be readable against the background */
+            text-shadow: 1px 1px 2px #000; /* Add some text shadow for better readability */
+        }
+        .container {
+            background-color: #000; /* Add a semi-transparent background for better text readability */
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            margin-bottom: 30px
+        }
+        .movie-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .movie-info img {
+            max-width: 200px;
+            border-radius: 10px;
+            margin-right: 20px;
+        }
+        .movie-details {
+            flex: 1;
+        }
+        .movie-details h2 {
+            margin-top: 0;
+        }
+        .date-picker {
+            display: flex;
+            justify-content: left;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+        .date-picker div {
+            flex: 0 0 auto;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #000;
+            margin: 0 5px;
+
+        }
+        .date-picker .selected {
+            background-color: #c00;
+            color: #fff;
+            border-color: #c00;
+        }
+        .showtime-card {
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.1); /* Make each card slightly transparent */
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .showtime-card a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .showtime-card a:hover {
+            text-decoration: underline;
+        }
+        .showtime-header {
+            margin-bottom: 20px;
+        }
+        .showtime-day {
+            display: none; /* Initially hide the showtimes */
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="head">
+        <div class="showtime-header text-center">
+            <h1>Showtimes for {{ movie.title }}</h1>
+        </div>
+    </div>
+    <div class="container">
+        <div class="movie-info">
+            <img src="{% static 'images/' %}{{ movie.image_file_name }}" alt="{{ movie.title }}">
+            <div class="movie-details">
+                <h2>{{ movie.title }}</h2>
+                <p><strong>Duration:</strong> {{ movie.duration }}</p>
+                <p>{{ movie.description }}</p>
+            </div>
+        </div>
+        <div class="date-picker">
+            {% regroup showtimes by date_time.date as dated_showtimes %}
+            {% for date in dated_showtimes %}
+            <div class="date" data-date="{{ date.grouper }}">
+                <div>{{ date.grouper|date:'D' }}</div>
+                <div>{{ date.grouper|date:'M d' }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="list-group" id="showtimes-list">
+            <ul>
+                {% for date in dated_showtimes %}
+                <div class="showtime-day" data-date="{{ date.grouper }}">
+                    <h3>{{ date.grouper|date:"l, F j, Y" }}</h3>
+                    {% for showtime in date.list %}
+                    <div class="showtime-card list-group-item" data-date="{{ showtime.date_time|date:'Y-m-d' }}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <li>
+                            {{ showtime.date_time|date:'H:i A' }} - <a href="{% url 'book_ticket' showtime.id %}">Book</a>
+                            </li>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dateElements = document.querySelectorAll('.date-picker .date');
+            const showtimeDays = document.querySelectorAll('.showtime-day');
+
+            dateElements.forEach(dateElement => {
+                dateElement.addEventListener('click', function () {
+                    dateElements.forEach(el => el.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    const selectedDate = this.getAttribute('data-date');
+                    showtimeDays.forEach(showtimeDay => {
+                        if (showtimeDay.getAttribute('data-date') === selectedDate) {
+                            showtimeDay.style.display = 'block';
+                        } else {
+                            showtimeDay.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
